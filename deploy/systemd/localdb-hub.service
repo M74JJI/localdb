@@ -1,0 +1,16 @@
+[Unit]
+Description=LocalDB Hub Compose Appliance
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/localdb-hub/app
+ExecStart=/usr/bin/docker compose --env-file /opt/localdb-hub/app/deploy/compose/.env -f /opt/localdb-hub/app/deploy/compose/docker-compose.yml up -d
+ExecStop=/usr/bin/docker compose --env-file /opt/localdb-hub/app/deploy/compose/.env -f /opt/localdb-hub/app/deploy/compose/docker-compose.yml down
+TimeoutStartSec=0
+
+[Install]
+WantedBy=multi-user.target

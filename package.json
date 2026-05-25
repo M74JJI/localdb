@@ -1,0 +1,41 @@
+{
+  "name": "localdb-hub",
+  "private": true,
+  "packageManager": "bun@1.3.11",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "setup:dev": "bun scripts/setup-dev.ts",
+    "dev": "turbo dev",
+    "dev:web": "cd apps/web && bun run dev",
+    "dev:api": "cd apps/api && bun run dev",
+    "dev:worker": "cd apps/worker && bun run dev",
+    "build": "turbo build",
+    "typecheck": "turbo typecheck",
+    "lint": "bunx biome check .",
+    "format": "bunx biome format --write .",
+    "db:generate": "bunx prisma generate --schema packages/db/prisma/schema.prisma",
+    "db:push": "bunx prisma db push --schema packages/db/prisma/schema.prisma",
+    "db:migrate": "bunx prisma migrate dev --schema packages/db/prisma/schema.prisma",
+    "db:studio": "bunx prisma studio --schema packages/db/prisma/schema.prisma",
+    "smoke:api": "bun scripts/smoke-api.ts",
+    "linux:check-docker": "bash deploy/scripts/check-docker-ready.sh",
+    "linux:diagnostics": "bash deploy/scripts/diagnostics.sh",
+    "linux:smoke-appliance": "bash deploy/scripts/smoke-appliance.sh"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "latest",
+    "@prisma/client": "6.19.0",
+    "@tailwindcss/postcss": "^4.3.0",
+    "@types/node": "latest",
+    "prisma": "6.19.0",
+    "turbo": "latest",
+    "typescript": "latest"
+  },
+  "dependencies": {
+    "postcss": "^8.5.15",
+    "tailwindcss": "^4.3.0"
+  }
+}

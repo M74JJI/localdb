@@ -1,0 +1,76 @@
+name: localdb-hub
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: localdb-hub-caddy
+    restart: unless-stopped
+    depends_on:
+      - web
+      - api
+    ports:
+      - "${PUBLIC_PORT:-8080}:8080"
+    volumes:
+      - ../caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+    networks:
+      - localdb-hub-control
+
+  web:
+    build:
+      context: ../..
+      dockerfile: deploy/dockerfiles/web.Dockerfile
+    container_name: localdb-hub-web
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      LOCALDB_HUB_INTERNAL_API_URL: http://api:4000
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8080}
+    networks:
+      - localdb-hub-control
+
+  api:
+    build:
+      context: ../..
+      dockerfile: deploy/dockerfiles/api.Dockerfile
+    container_name: localdb-hub-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      API_HOST: 0.0.0.0
+      API_PORT: 4000
+      LOCALDB_HUB_ROOT: /opt/localdb-hub
+      LOCALDB_HUB_DATABASE_URL: ${LOCALDB_HUB_DATABASE_URL:-file:/opt/localdb-hub/metadata/localdb-hub.sqlite}
+      LOCALDB_HUB_WEB_ORIGIN: ${LOCALDB_HUB_WEB_ORIGIN:-http://localhost:8080}
+      LOCALDB_HUB_PUBLIC_HOST: ${LOCALDB_HUB_PUBLIC_HOST:-127.0.0.1}
+      LOCALDB_HUB_DOCKER_ENABLED: ${LOCALDB_HUB_DOCKER_ENABLED:-true}
+      DOCKER_SOCKET_PATH: ${DOCKER_SOCKET_PATH:-/var/run/docker.sock}
+      LOCALDB_HUB_MASTER_KEY_PATH: ${LOCALDB_HUB_MASTER_KEY_PATH:-/opt/localdb-hub/config/master.key}
+    volumes:
+      - ${LOCALDB_HUB_ROOT:-/opt/localdb-hub}:/opt/localdb-hub
+    networks:
+      - localdb-hub-control
+
+  worker:
+    build:
+      context: ../..
+      dockerfile: deploy/dockerfiles/worker.Dockerfile
+    container_name: localdb-hub-worker
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      LOCALDB_HUB_ROOT: /opt/localdb-hub
+      LOCALDB_HUB_DATABASE_URL: ${LOCALDB_HUB_DATABASE_URL:-file:/opt/localdb-hub/metadata/localdb-hub.sqlite}
+      LOCALDB_HUB_PUBLIC_HOST: ${LOCALDB_HUB_PUBLIC_HOST:-127.0.0.1}
+      LOCALDB_HUB_DOCKER_ENABLED: ${LOCALDB_HUB_DOCKER_ENABLED:-true}
+      DOCKER_SOCKET_PATH: ${DOCKER_SOCKET_PATH:-/var/run/docker.sock}
+      LOCALDB_HUB_MASTER_KEY_PATH: ${LOCALDB_HUB_MASTER_KEY_PATH:-/opt/localdb-hub/config/master.key}
+      WORKER_POLL_MS: ${WORKER_POLL_MS:-3000}
+    volumes:
+      - ${LOCALDB_HUB_ROOT:-/opt/localdb-hub}:/opt/localdb-hub
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - localdb-hub-control
+
+networks:
+  localdb-hub-control:
+    name: localdb-hub-control

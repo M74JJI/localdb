@@ -1,0 +1,35 @@
+#cloud-config
+hostname: localdb-hub
+manage_etc_hosts: true
+
+users:
+  - name: localdb
+    gecos: LocalDB Hub
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: sudo,docker
+    shell: /bin/bash
+    lock_passwd: false
+    plain_text_passwd: localdb
+
+package_update: true
+packages:
+  - sudo
+  - curl
+  - git
+  - unzip
+  - openssl
+  - ca-certificates
+  - docker.io
+  - docker-compose-plugin
+  - rsync
+
+runcmd:
+  - systemctl enable docker
+  - systemctl start docker
+  - mkdir -p /opt/localdb-hub/config /opt/localdb-hub/metadata /opt/localdb-hub/data /opt/localdb-hub/backups /opt/localdb-hub/logs /opt/localdb-hub/jobs /opt/localdb-hub/tmp
+  - chown -R localdb:localdb /opt/localdb-hub
+  - '[ -f /opt/localdb-hub/config/master.key ] || openssl rand -base64 32 > /opt/localdb-hub/config/master.key'
+  - chmod 600 /opt/localdb-hub/config/master.key
+  - chown localdb:localdb /opt/localdb-hub/config/master.key
+
+final_message: "LocalDB Hub base VM cloud-init complete. Copy app files and run deploy/scripts/install-debian.sh or bake them with Packer."

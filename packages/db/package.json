@@ -1,0 +1,21 @@
+{
+  "name": "@localdb-hub/db",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "generate": "bunx prisma generate --schema prisma/schema.prisma",
+    "db:push": "bunx prisma db push --schema prisma/schema.prisma",
+    "migrate": "bunx prisma migrate dev --schema prisma/schema.prisma",
+    "studio": "bunx prisma studio --schema prisma/schema.prisma",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@prisma/client": "6.19.0",
+    "prisma": "6.19.0"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "typescript": "latest"
+  }
+}

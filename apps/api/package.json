@@ -1,0 +1,29 @@
+{
+  "name": "@localdb-hub/api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --watch src/main.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "bun dist/main.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "fastify": "latest",
+    "@fastify/cookie": "latest",
+    "@fastify/cors": "latest",
+    "@fastify/helmet": "latest",
+    "@fastify/rate-limit": "latest",
+    "zod": "latest",
+    "@localdb-hub/shared": "workspace:*",
+    "@localdb-hub/db": "workspace:*",
+    "@localdb-hub/templates": "workspace:*",
+    "@localdb-hub/docker": "workspace:*",
+    "@localdb-hub/security": "workspace:*",
+    "@localdb-hub/config": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "typescript": "latest"
+  }
+}

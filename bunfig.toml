@@ -1,0 +1,5 @@
+[install.lockfile]
+save = true
+
+[install]
+auto = "auto"

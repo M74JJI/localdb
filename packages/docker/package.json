@@ -1,0 +1,17 @@
+{
+  "name": "@localdb-hub/docker",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "dockerode": "latest"
+  },
+  "devDependencies": {
+    "@types/dockerode": "latest",
+    "@types/node": "latest",
+    "typescript": "latest"
+  }
+}

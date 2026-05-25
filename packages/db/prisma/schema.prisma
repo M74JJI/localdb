@@ -1,0 +1,156 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("LOCALDB_HUB_DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         String   @default("admin")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  sessions     Session[]
+  instances    Instance[]
+  jobs         Job[]
+  auditEvents  AuditEvent[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Instance {
+  id                 String   @id @default(cuid())
+  name               String   @unique
+  engine             String
+  version            String
+  status             String
+  host               String?
+  primaryPort        Int?
+  internalPortsJson  String   @default("[]")
+  databaseName       String?
+  username           String?
+  exposeMode         String   @default("LOCAL_ONLY")
+  containerName      String?
+  volumeName         String?
+  dockerImage        String?
+  resourceLimitsJson String   @default("{}")
+  createdById        String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  lastHealthCheckAt  DateTime?
+
+  createdBy          User?    @relation(fields: [createdById], references: [id])
+  secrets            InstanceSecret[]
+  jobs               Job[]
+  backups            Backup[]
+}
+
+model InstanceSecret {
+  id         String   @id @default(cuid())
+  instanceId String
+  name       String
+  ciphertext String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+
+  @@unique([instanceId, name])
+}
+
+model PortReservation {
+  id         String   @id @default(cuid())
+  port       Int      @unique
+  protocol   String   @default("tcp")
+  instanceId String?
+  status     String   @default("RESERVED")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Job {
+  id           String   @id @default(cuid())
+  type         String
+  status       String   @default("QUEUED")
+  instanceId   String?
+  payloadJson  String   @default("{}")
+  progress     Int      @default(0)
+  message      String?
+  errorCode    String?
+  errorMessage String?
+  attempts     Int      @default(0)
+  createdById  String?
+  createdAt    DateTime @default(now())
+  startedAt    DateTime?
+  finishedAt   DateTime?
+
+  instance     Instance? @relation(fields: [instanceId], references: [id], onDelete: SetNull)
+  createdBy    User?     @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  logs         JobLog[]
+}
+
+model JobLog {
+  id        String   @id @default(cuid())
+  jobId     String
+  level     String   @default("info")
+  message   String
+  createdAt DateTime @default(now())
+
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+}
+
+model Backup {
+  id             String   @id @default(cuid())
+  instanceId     String
+  type           String
+  status         String
+  path           String?
+  sizeBytes      Int?
+  checksumSha256 String?
+  createdById    String?
+  createdAt      DateTime @default(now())
+  completedAt    DateTime?
+  errorMessage   String?
+
+  instance       Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+}
+
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+model AuditEvent {
+  id           String   @id @default(cuid())
+  actorUserId  String?
+  action       String
+  targetType   String?
+  targetId     String?
+  metadataJson String   @default("{}")
+  createdAt    DateTime @default(now())
+
+  actor        User?    @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+}
+
+model SystemEvent {
+  id           String   @id @default(cuid())
+  level        String   @default("info")
+  source       String
+  message      String
+  metadataJson String   @default("{}")
+  createdAt    DateTime @default(now())
+}
