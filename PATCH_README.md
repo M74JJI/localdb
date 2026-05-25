@@ -1,51 +1,73 @@
-# LocalDB Hub — Phase 23 Browser API VM Fix
+# LocalDB Hub — Phase 25 API CORS / VM Browser Fix
 
 ## Problem
 
-The API works directly in the Windows browser:
+`http://192.168.133.131:4000/api/setup/status` works directly in the Windows browser, but the web page at:
 
 ```txt
-http://192.168.133.131:4000/api/setup/status
+http://192.168.133.131:3000/setup
 ```
 
-but `/setup` stays on:
+stays on:
 
 ```txt
 Checking...
 ```
 
-This means the frontend client-side API helper is not reaching the API correctly from the browser.
+Direct browser navigation does not test CORS. The web page is cross-origin because:
+
+```txt
+Web: http://192.168.133.131:3000
+API: http://192.168.133.131:4000
+```
+
+So the API must return the proper CORS headers.
 
 ## Fix
 
-`apps/web/src/lib/client-api.ts` now resolves the API base safely:
+This patch makes the API:
 
-- If `NEXT_PUBLIC_API_BASE_URL` is usable, use it.
-- If it is missing, localhost, or stale, derive the API URL from the current browser host:
-  - Web opened at `http://192.168.133.131:3000`
-  - API becomes `http://192.168.133.131:4000`
-
-Also makes browser fetches use `credentials: "include"` so auth cookies work correctly.
+- Load the root `.env` before reading origin/host/port settings.
+- Register explicit CORS handling.
+- Allow:
+  - `LOCALDB_HUB_WEB_ORIGIN`
+  - `http://localhost:3000`
+  - `http://127.0.0.1:3000`
+  - Same-host LAN origin on port `3000`
+- Support credentialed requests.
+- Respond to preflight `OPTIONS`.
 
 ## Apply
 
 ```bash
-cd /home/db/localdb-test/localdb
-unzip -o /path/to/localdb-hub-phase23-browser-api-vm-fix.zip
+cd /home/db/localdb
+unzip -o /path/to/localdb-hub-phase25-api-cors-vm-fix.zip
 rm -rf apps/web/.next
 bun run typecheck
 bun run build
 ```
 
-Then restart API and Web:
+Restart API and web:
 
 ```bash
+pkill -f "bun run dev:api"
+pkill -f "bun run dev:web"
+pkill -f "next dev"
+
 bun run dev:api
 bun run dev:web
 ```
 
-Hard refresh browser:
+## Verify CORS
+
+```bash
+curl -i \
+  -H "Origin: http://192.168.133.131:3000" \
+  http://192.168.133.131:4000/api/setup/status
+```
+
+Expected header:
 
 ```txt
-Ctrl + F5
+access-control-allow-origin: http://192.168.133.131:3000
 ```
