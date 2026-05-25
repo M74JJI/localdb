@@ -1,41 +1,30 @@
-# LocalDB Hub — Phase 21 Shell + Professional Tables UX
+# LocalDB Hub — Phase 22 Linux Typecheck Field Fix
 
-## Fixes
+## Problem
 
-- Authenticated application pages use the shared `AppShell`, so the sidebar is visible consistently.
-- `/databases/new` now uses the main app shell.
-- `/databases/[id]` now uses the main app shell.
-- Tables now feel like real admin-console tables:
-  - Search
-  - Page size selector
-  - Pagination
-  - Result counts
-  - Previous/Next controls
-  - Empty filtered state
-- Adds client table components for:
-  - Databases
-  - Jobs
-  - Backups
-  - Audit log
+Linux typecheck fails in `apps/web/src/app/databases/new/page.tsx` because `exactOptionalPropertyTypes` rejects explicit `undefined` for the `Field` component's `error` prop.
+
+## Fix
+
+Change the `Field` prop type from:
+
+```ts
+error?: string;
+help?: string;
+```
+
+to:
+
+```ts
+error?: string | undefined;
+help?: string | undefined;
+```
 
 ## Apply
 
-```powershell
-cd C:\Users\MohamedHajji\Desktop\localdb-hub-foundation\localdb-hub-foundation
-Expand-Archive -Force C:\Path\To\localdb-hub-phase21-shell-tables-ux.zip .
-Remove-Item -Recurse -Force .\apps\web\.next -ErrorAction SilentlyContinue
+```bash
+cd ~/localdb-test/localdb-hub-foundation
+unzip -o /path/to/localdb-hub-phase22-linux-typecheck-field-fix.zip
 bun run typecheck
 bun run build
-bun run dev:web
 ```
-
-Hard refresh:
-
-```txt
-Ctrl + F5
-```
-
-## Note
-
-Login, setup, and public landing intentionally do not use the sidebar.
-All authenticated console pages should.
