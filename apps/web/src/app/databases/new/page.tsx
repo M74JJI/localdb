@@ -120,16 +120,16 @@ export default function NewDatabasePage() {
                 </select>
               </Field>
 
-              <Field label="Instance name" help="Used for display, jobs, and container naming." error={touched.name ? errors.name : undefined}>
+              <Field label="Instance name" help="Used for display, jobs, and container naming." error={touched.name ? (errors.name ?? "") : ""}>
                 <input value={name} onBlur={() => setTouched((state) => ({ ...state, name: true }))} onChange={(event) => setName(event.target.value)} className="app-input" aria-invalid={Boolean(touched.name && errors.name)} placeholder="test-postgres" />
               </Field>
 
               <div className="grid gap-5 md:grid-cols-2">
-                <Field label="Database name" error={touched.databaseName ? errors.databaseName : undefined}>
+                <Field label="Database name" error={touched.databaseName ? (errors.databaseName ?? "") : ""}>
                   <input value={databaseName} onBlur={() => setTouched((state) => ({ ...state, databaseName: true }))} onChange={(event) => setDatabaseName(event.target.value)} className="app-input" aria-invalid={Boolean(touched.databaseName && errors.databaseName)} placeholder="app_db" />
                 </Field>
 
-                <Field label="Username" error={touched.username ? errors.username : undefined}>
+                <Field label="Username" error={touched.username ? (errors.username ?? "") : ""}>
                   <input value={username} onBlur={() => setTouched((state) => ({ ...state, username: true }))} onChange={(event) => setUsername(event.target.value)} className="app-input" aria-invalid={Boolean(touched.username && errors.username)} placeholder="app_user" />
                 </Field>
               </div>

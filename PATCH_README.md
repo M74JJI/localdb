@@ -1,30 +1,37 @@
-# LocalDB Hub — Phase 22 Linux Typecheck Field Fix
+# LocalDB Hub — Proper Field Error Fix
 
 ## Problem
 
-Linux typecheck fails in `apps/web/src/app/databases/new/page.tsx` because `exactOptionalPropertyTypes` rejects explicit `undefined` for the `Field` component's `error` prop.
+Build/typecheck fails in:
 
-## Fix
-
-Change the `Field` prop type from:
-
-```ts
-error?: string;
-help?: string;
+```txt
+apps/web/src/app/databases/new/page.tsx
 ```
 
-to:
+because JSX passes explicit `undefined` to an optional prop:
 
-```ts
-error?: string | undefined;
-help?: string | undefined;
+```tsx
+error={touched.name ? errors.name : undefined}
 ```
+
+With `exactOptionalPropertyTypes: true`, `error?: string` does not accept an explicitly passed `undefined`.
+
+## Proper fix
+
+Do not pass `undefined`. Pass an empty string when there is no visible error:
+
+```tsx
+error={touched.name ? (errors.name ?? "") : ""}
+```
+
+This preserves behavior because the `Field` component renders the error only when it is truthy.
 
 ## Apply
 
 ```bash
-cd ~/localdb-test/localdb-hub-foundation
-unzip -o /path/to/localdb-hub-phase22-linux-typecheck-field-fix.zip
+cd ~/localdb-test/localdb
+unzip -o /path/to/localdb-hub-phase22-proper-field-error-fix.zip
+bun scripts/fix-field-error-jsx.ts
 bun run typecheck
 bun run build
 ```
