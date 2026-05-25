@@ -1,37 +1,51 @@
-# LocalDB Hub — Proper Field Error Fix
+# LocalDB Hub — Phase 23 Browser API VM Fix
 
 ## Problem
 
-Build/typecheck fails in:
+The API works directly in the Windows browser:
 
 ```txt
-apps/web/src/app/databases/new/page.tsx
+http://192.168.133.131:4000/api/setup/status
 ```
 
-because JSX passes explicit `undefined` to an optional prop:
+but `/setup` stays on:
 
-```tsx
-error={touched.name ? errors.name : undefined}
+```txt
+Checking...
 ```
 
-With `exactOptionalPropertyTypes: true`, `error?: string` does not accept an explicitly passed `undefined`.
+This means the frontend client-side API helper is not reaching the API correctly from the browser.
 
-## Proper fix
+## Fix
 
-Do not pass `undefined`. Pass an empty string when there is no visible error:
+`apps/web/src/lib/client-api.ts` now resolves the API base safely:
 
-```tsx
-error={touched.name ? (errors.name ?? "") : ""}
-```
+- If `NEXT_PUBLIC_API_BASE_URL` is usable, use it.
+- If it is missing, localhost, or stale, derive the API URL from the current browser host:
+  - Web opened at `http://192.168.133.131:3000`
+  - API becomes `http://192.168.133.131:4000`
 
-This preserves behavior because the `Field` component renders the error only when it is truthy.
+Also makes browser fetches use `credentials: "include"` so auth cookies work correctly.
 
 ## Apply
 
 ```bash
-cd ~/localdb-test/localdb
-unzip -o /path/to/localdb-hub-phase22-proper-field-error-fix.zip
-bun scripts/fix-field-error-jsx.ts
+cd /home/db/localdb-test/localdb
+unzip -o /path/to/localdb-hub-phase23-browser-api-vm-fix.zip
+rm -rf apps/web/.next
 bun run typecheck
 bun run build
+```
+
+Then restart API and Web:
+
+```bash
+bun run dev:api
+bun run dev:web
+```
+
+Hard refresh browser:
+
+```txt
+Ctrl + F5
 ```

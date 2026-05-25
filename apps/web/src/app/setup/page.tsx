@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { browserApiGet, browserApiPost } from "@/lib/client-api";
+import { browserApiGet, browserApiPost, getBrowserApiBaseUrl } from "@/lib/client-api";
 
 type SetupStatus = { initialized: boolean; metadataDbReady: boolean; error?: string };
 
@@ -15,9 +15,16 @@ export default function SetupPage() {
   const [password, setPassword] = useState("ChangeMe123!");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [apiBaseUrl, setApiBaseUrl] = useState("");
 
   useEffect(() => {
-    browserApiGet<SetupStatus>("/api/setup/status").then(setStatus).catch((error) => setMessage(error instanceof Error ? error.message : "Failed to load setup status"));
+    setApiBaseUrl(getBrowserApiBaseUrl());
+
+    browserApiGet<SetupStatus>("/api/setup/status")
+      .then(setStatus)
+      .catch((error) => {
+        setMessage(error instanceof Error ? error.message : "Failed to load setup status");
+      });
   }, []);
 
   async function initialize() {
@@ -45,9 +52,16 @@ export default function SetupPage() {
         </div>
 
         <div className="app-card p-6">
-          <div className="app-card-muted mb-5 flex items-center justify-between p-3">
-            <span className="text-sm" style={{ color: "var(--app-text-muted)" }}>Setup status</span>
-            <span className="text-sm font-semibold">{status ? (status.initialized ? "Initialized" : "Ready") : "Checking..."}</span>
+          <div className="app-card-muted mb-5 grid gap-2 p-3">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-sm" style={{ color: "var(--app-text-muted)" }}>Setup status</span>
+              <span className="text-sm font-semibold">{status ? (status.initialized ? "Initialized" : "Ready") : message ? "Unavailable" : "Checking..."}</span>
+            </div>
+            {apiBaseUrl ? (
+              <p className="break-all font-mono text-xs" style={{ color: "var(--app-text-subtle)" }}>
+                API: {apiBaseUrl}
+              </p>
+            ) : null}
           </div>
 
           <label className="app-label" htmlFor="email">Admin email</label>
